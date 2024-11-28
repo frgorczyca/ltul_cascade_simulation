@@ -52,6 +52,7 @@ def cascade_example(inattentivness_index = 0, draws=100, b_urn=0.66, w_urn=0.34)
     total_b_count = guesses.count("b")
     total_w_count = guesses.count("w")
     
+    #probe range and the end and check if there is trend of one color increasing despite overall count
     if b_count >= w_count and total_b_count > w_count:
         if urn_probability == b_urn:
             return 2
@@ -75,7 +76,7 @@ def cascade_example(inattentivness_index = 0, draws=100, b_urn=0.66, w_urn=0.34)
 def main():
     runs = 1000
     stats = { "correct_cascades": 0, "incorrect_cascades": 0 , "no_cascades": 0}
-    intattentive_index = 0
+    intattentive_index = 2
     for _ in range(runs):
         result = cascade_example(inattentivness_index=intattentive_index)
         
