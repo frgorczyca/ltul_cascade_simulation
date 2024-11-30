@@ -49,9 +49,6 @@ def cascade_example(inattentivness_index = 0, draws=100, b_urn=0.66, w_urn=0.34)
 
     total_b_count = guesses.count("b")
     total_w_count = guesses.count("w")
-
-    # print(guesses)
-    # print(urn_probability)
     
     #probe range and the end and check if there is trend of one color increasing despite overall count
     if b_count >= w_count and total_b_count > w_count:
@@ -154,7 +151,7 @@ def main():
         save_results(f"cascade_inattentive_{inattentive_index}", set)
     
     for ranges in [(0, 10), (0, 20), (0, 50), (0, 90), (10, 30), (20, 30), (10, 50), (30, 70), (50, 90)]:
-        set = run_simulation(f"cascade_range_{ranges[0]}_{ranges[1]}", 100, runs, cascade_example_insert_range, ranges[0], ranges[1])
+        set =run_simulation(f"cascade_range_{ranges[0]}_{ranges[1]}", 100, runs, cascade_example_insert_range, ranges[0], ranges[1])
         save_results(f"cascade_inattentive_{inattentive_index}", set)
 
 main()
