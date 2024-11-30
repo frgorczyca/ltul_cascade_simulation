@@ -1,4 +1,5 @@
 import random, math
+import matplotlib.pyplot as plt
 from typing import List
 
 def attentive_agent_draw(urn_probability, guesses: List[str]):
@@ -141,17 +142,42 @@ def save_results(filename, stats_set):
         for stat in stats_set:
             file.write(f"{stat['correct_cascades']},{stat['incorrect_cascades']},{stat['no_cascades']}\n")
 
-
 def main():
     runs = 1000
 
+    averages_correct = []
+    averages_incorrect = []
+    averages_no = []
     #test various inattentive indexes
-    for inattentive_index in [0, 1, 2, 3, 4, 5, 6, 10, 20, 25]:
-        set = run_simulation(f"cascade_inattentive_{inattentive_index}", 100, runs, cascade_example, inattentive_index)
-        save_results(f"cascade_inattentive_{inattentive_index}", set)
+    for inattentive_index in [0,1,2,5,10,20]:
+        result = run_simulation(100, runs, cascade_example, inattentive_index)
+        #save_results(f"cascade_inattentive_{inattentive_index}", set)
+
+        correct_cascades = [stat["correct_cascades"] for stat in result]
+        incorrect_cascades = [stat["incorrect_cascades"] for stat in result]
+        no_cascades = [stat["no_cascades"] for stat in result]
+
+        averages_correct.append(sum(correct_cascades) / len(correct_cascades))
+        averages_incorrect.append(sum(incorrect_cascades) / len(incorrect_cascades))
+        averages_no.append(sum(no_cascades) / len(no_cascades))
+
+    labels = ['Correct Cascades', 'Incorrect Cascades', 'No Cascades']
+    x = range(len(averages_correct))
+    print(averages_correct, averages_incorrect, averages_no)
+
+
+    plt.bar(x, averages_correct, label='Correct Cascades')
+    plt.bar(x, averages_incorrect, bottom=averages_correct, label='Incorrect Cascades')
+    plt.bar(x, averages_no, bottom=[i+j for i,j in zip(averages_correct, averages_incorrect)], label='No Cascades')
+
+    plt.xlabel('Simulation Runs')
+    plt.ylabel('Count')
+    plt.title("Cascade Simulation")
+    plt.legend()
+    plt.show()
     
-    for ranges in [(0, 10), (0, 20), (0, 50), (0, 90), (10, 30), (20, 30), (10, 50), (30, 70), (50, 90)]:
-        set =run_simulation(f"cascade_range_{ranges[0]}_{ranges[1]}", 100, runs, cascade_example_insert_range, ranges[0], ranges[1])
-        save_results(f"cascade_inattentive_{inattentive_index}", set)
+    # for ranges in [(0, 10), (0, 20), (0, 50), (0, 90), (10, 30), (20, 30), (10, 50), (30, 70), (50, 90)]:
+    #     set =run_simulation(f"cascade_range_{ranges[0]}_{ranges[1]}", 100, runs, cascade_example_insert_range, ranges[0], ranges[1])
+    #     save_results(f"cascade_inattentive_{inattentive_index}", set)
 
 main()
