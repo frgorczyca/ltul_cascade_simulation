@@ -1,4 +1,23 @@
+"""
+This module simulates a cascade phenomenon using attentive and inattentive agents drawing balls from an urn.
+Functions:
+    attentive_agent_draw(urn_probability, guesses: List[str]) -> None:
+        Simulates a draw by an attentive agent and updates the guesses list based on the urn probability and previous guesses.
+    inattentive_agent_draw(urn_probability, guesses: List[str]) -> None:
+        Simulates a draw by an inattentive agent and updates the guesses list based solely on the urn probability.
+    cascade_example(inattentivness_index=0, draws=100, b_urn=0.66, w_urn=0.34) -> int:
+        Simulates a cascade example with a given inattentiveness index and number of draws, returning the type of cascade observed.
+    cascade_example_insert_range(start_range=0, end_range=0, draws=100, b_urn=0.66, w_urn=0.34) -> int:
+        Simulates a cascade example with inattentive agents within a specified range of draws, returning the type of cascade observed.
+    run_simulation(times: int, runs: int, method, *arguments) -> List[dict]:
+        Runs the specified cascade simulation method multiple times and collects statistics on the outcomes.
+    save_results(filename: str, stats_set: List[dict]) -> None:
+        Saves the simulation results to a CSV file.
+    plot_results(results: List[List[dict]], x_axis: List) -> None:
+        Plots the results of the cascade simulations, showing the average counts of correct, incorrect, and no cascades.
+"""
 import random, math
+import matplotlib.pyplot as plt
 from typing import List
 
 def attentive_agent_draw(urn_probability, guesses: List[str]):
@@ -21,7 +40,7 @@ def inattentive_agent_draw(urn_probability, guesses: List[str]):
     else:
         guesses.append("w")
 
-def cascade_example(inattentivness_index = 0, draws=100, b_urn=0.66, w_urn=0.34):
+def cascade_example(inattentivness_index : int = 0, draws : int =100, b_urn : float =0.66, w_urn : float =0.34):
     coin_toss = random.random()
 
     #probability of drawing a black ball from the urn
@@ -71,7 +90,7 @@ def cascade_example(inattentivness_index = 0, draws=100, b_urn=0.66, w_urn=0.34)
 
     return 0
 
-def cascade_example_insert_range(start_range = 0, end_range = 0, draws=100, b_urn=0.66, w_urn=0.34):
+def cascade_example_insert_range(start_range : int = 0, end_range : int = 0, draws: int =100, b_urn : int = 0.66, w_urn : int =0.34):
     coin_toss = random.random()
 
     #probability of drawing a black ball from the urn
@@ -118,7 +137,7 @@ def cascade_example_insert_range(start_range = 0, end_range = 0, draws=100, b_ur
 
     return 0
 
-def run_simulation(times, runs, method, *arguments):
+def run_simulation(times : int, runs : int, method, *arguments):
     stats_set = []
     for i in range(times):
         stats = { "correct_cascades": 0, "incorrect_cascades": 0 , "no_cascades": 0}
@@ -135,23 +154,58 @@ def run_simulation(times, runs, method, *arguments):
 
     return stats_set
 
-def save_results(filename, stats_set):
+
+def save_results(filename : str, stats_set: List[dict]):
     with open(f"results/{filename}.csv", "w") as file:
         file.write("correct_cascades,incorrect_cascades,no_cascades\n")
         for stat in stats_set:
             file.write(f"{stat['correct_cascades']},{stat['incorrect_cascades']},{stat['no_cascades']}\n")
 
+def plot_results(results : List[dict], x_axis : List):
+    averages_correct = []
+    averages_incorrect = []
+    averages_no = []
+    
+    for result in results:
+        correct_cascades = [stat["correct_cascades"] for stat in result]
+        incorrect_cascades = [stat["incorrect_cascades"] for stat in result]
+        no_cascades = [stat["no_cascades"] for stat in result]
+
+        averages_correct.append(sum(correct_cascades) / len(correct_cascades))
+        averages_incorrect.append(sum(incorrect_cascades) / len(incorrect_cascades))
+        averages_no.append(sum(no_cascades) / len(no_cascades))
+    
+    x = range(len(averages_correct))
+
+    plt.bar(x, averages_correct, label='Correct Cascades')
+    plt.bar(x, averages_incorrect, bottom=averages_correct, label='Incorrect Cascades')
+    plt.bar(x, averages_no, bottom=[i+j for i,j in zip(averages_correct, averages_incorrect)], label='No Cascades')
+
+    plt.xlabel('Inattentive Index')
+    plt.ylabel('Count')
+    plt.title("Cascade Simulation")
+    plt.legend(loc = 'lower right')
+    plt.xticks(x, x_axis)
+    plt.show()
 
 def main():
-    runs = 1000
+    runs = 100
 
-    #test various inattentive indexes
-    for inattentive_index in [0, 1, 2, 3, 4, 5, 6, 10, 20, 25]:
-        set = run_simulation(f"cascade_inattentive_{inattentive_index}", 100, runs, cascade_example, inattentive_index)
-        save_results(f"cascade_inattentive_{inattentive_index}", set)
+    #test various cyclic inattentive indexes
+    inattentive_results = []
+    for inattentive_index in [0,1,2,5,10,20]:
+        result = run_simulation(100, runs, cascade_example, inattentive_index)
+        inattentive_results.append(result)
+
+    plot_results(inattentive_results, [0,1,2,5,10,20])
     
+    #test various ranges of inattentiveness
+    ranges_results = []
     for ranges in [(0, 10), (0, 20), (0, 50), (0, 90), (10, 30), (20, 30), (10, 50), (30, 70), (50, 90)]:
-        set =run_simulation(f"cascade_range_{ranges[0]}_{ranges[1]}", 100, runs, cascade_example_insert_range, ranges[0], ranges[1])
-        save_results(f"cascade_inattentive_{inattentive_index}", set)
+        result =run_simulation(100, runs, cascade_example_insert_range, ranges[0], ranges[1])
+        ranges_results.append(result)
+
+    plot_results(ranges_results, [(0, 10), (0, 20), (0, 50), (0, 90), (10, 30), (20, 30), (10, 50), (30, 70), (50, 90)])
+
 
 main()
